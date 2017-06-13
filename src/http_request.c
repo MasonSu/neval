@@ -117,10 +117,10 @@ void ne_http_request_handle(struct neEventLoop *eventLoop, int fd,
   int rc;
   /* Delete old timer */
   neDeleteTimeEvent(request);
-  while (!request->request_done) {
+  for (;;) {
     int remainSize = MAX_BUF - (request->last - request->pos);
     int n = read(request->socket, request->last, remainSize);
-
+    debug("read return %d", n);
     if (n == 0) {
       log_err("read return 0, ready to close fd %d", request->socket);
       goto err;
@@ -137,11 +137,13 @@ void ne_http_request_handle(struct neEventLoop *eventLoop, int fd,
     request->last += n;
     check(request->last - request->pos < MAX_BUF, "request buffer overflow");
 
-    rc = request->in_handler(request);
-    if (rc == NE_AGAIN)
-      continue;
-    else if (rc == NE_ERR)
-      goto err;
+    while (!request->request_done) {
+      rc = request->in_handler(request);
+      if (rc == NE_AGAIN)
+        break;
+      else if (rc == NE_ERR)
+        goto err;
+    }
   }
 
   /* Send response ASAP, if it can be done,
@@ -158,6 +160,7 @@ err:
 }
 
 int ne_http_handle_request_line(ne_http_request *request) {
+  debug("ne_http_handle_request_line");
   int rc = ne_http_parse_request_line(request);
   if (rc == NE_AGAIN)
     return rc;
@@ -185,8 +188,9 @@ err:
 }
 
 int ne_http_handle_uri(ne_http_request *request) {
+  debug("ne_http_handle_uri");
   ne_http_parse_uri(request);
-
+  debug("fileName is %s", request->filename);
   struct stat sbuf;
   if (stat(request->filename, &sbuf) == -1) {
     request->status_code = 404;
@@ -211,6 +215,7 @@ err:
 }
 
 int ne_http_handle_header_line(ne_http_request *request) {
+  debug("ne_http_handle_header_line");
   int rc = ne_http_parse_header_line(request);
   if (rc == NE_AGAIN)
     return rc;
@@ -218,7 +223,7 @@ int ne_http_handle_header_line(ne_http_request *request) {
     request->status_code = 400;
     goto err;
   }
-
+  /* Not efficient to do this, need to be improved */
   for (listNode *node = request->list->head; node != NULL; node = node->next) {
     ne_http_header *value = (ne_http_header *)node->value;
     for (ne_http_header_handle *header_in = ne_http_headers_in;

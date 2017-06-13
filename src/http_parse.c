@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ROOT "/home/xiaxun/worksp/neval/data"
+#define ROOT "/home/xiaxun/worksp/neval/data/www"
 
 int ne_http_parse_request_line(ne_http_request *request) {
   enum {
@@ -227,7 +227,6 @@ int ne_http_parse_header_line(ne_http_request *request) {
     sw_key,
     sw_space_before_value,
     sw_value,
-    sw_space_after_value,
     sw_cr,
     sw_crlf,
     sw_crlfcr
@@ -237,6 +236,7 @@ int ne_http_parse_header_line(ne_http_request *request) {
 
   u_char *p;
   ne_http_header *header;
+  debug("request is %s", request->pos);
   for (p = request->pos; p < request->last; p++) {
     u_char ch = *p;
 
@@ -264,12 +264,6 @@ int ne_http_parse_header_line(ne_http_request *request) {
       break;
 
     case sw_value:
-      if (ch == ' ') {
-        request->cur_header_value_end = p;
-        state = sw_space_after_value;
-        break;
-      }
-
       if (ch == CR) {
         request->cur_header_value_end = p;
         state = sw_cr;
@@ -280,23 +274,6 @@ int ne_http_parse_header_line(ne_http_request *request) {
         request->cur_header_value_end = p;
         state = sw_crlf;
         break;
-      }
-
-      break;
-
-    /* Now it can only handle one header value */
-    case sw_space_after_value:
-      switch (ch) {
-      case ' ':
-        break;
-      case CR:
-        state = sw_cr;
-        break;
-      case LF:
-        state = sw_crlf;
-        break;
-      default:
-        return NE_HTTP_PARSE_INVALID_HEADER;
       }
 
       break;
@@ -320,8 +297,11 @@ int ne_http_parse_header_line(ne_http_request *request) {
       header->key_end = request->cur_header_key_end;
       header->value_start = request->cur_header_value_start;
       header->value_end = request->cur_header_value_end;
-
-      request->list = listAddNodeHead(request->list, header);
+      debug("header= %.*s, value= %.*s",
+            (int)(header->key_end - header->key_start), header->key_start,
+            (int)(header->value_end - header->value_start),
+            header->value_start);
+      request->list = listAddNodeTail(request->list, header);
 
       if (ch == CR)
         state = sw_crlfcr;
