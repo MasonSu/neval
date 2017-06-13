@@ -76,6 +76,7 @@ static void bubbleDown(minHeap *ne_hp, size_t k) {
 }
 
 int ne_hp_delmin(minHeap *ne_hp) {
+  debug("ne_hp_delmin, the size of minHeap is %d", ne_hp->size);
   swap(ne_hp, 1, ne_hp->size);
   ne_hp->size--;
   bubbleDown(ne_hp, 1);

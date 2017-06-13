@@ -182,15 +182,15 @@ void neDeleteTimeEvent(void *clientData) {
 }
 
 long long neSearchNearestTimer(neEventLoop *eventLoop) {
-  minHeap ne_hp = eventLoop->timer;
+  minHeap *ne_hp = &eventLoop->timer;
   long long time = NE_TIMER_INFINITE;
 
-  while (!ne_hp_is_empty(&ne_hp)) {
-    neTimeEvent *timeNode = (neTimeEvent *)ne_hp_min(&ne_hp);
+  while (!ne_hp_is_empty(ne_hp)) {
+    neTimeEvent *timeNode = (neTimeEvent *)ne_hp_min(ne_hp);
     check(timeNode != NULL, "ne_hp_min error");
 
     if (timeNode->deleted) {
-      ne_hp_delmin(&ne_hp);
+      ne_hp_delmin(ne_hp);
       free(timeNode);
       continue;
     }
@@ -210,14 +210,14 @@ long long neSearchNearestTimer(neEventLoop *eventLoop) {
 
 int neProcessTimeEvents(neEventLoop *eventLoop) {
   int processed = 0;
-  minHeap ne_hp = eventLoop->timer;
+  minHeap *ne_hp = &eventLoop->timer;
 
-  while (!ne_hp_is_empty(&ne_hp)) {
-    neTimeEvent *timeNode = (neTimeEvent *)ne_hp_min(&ne_hp);
+  while (!ne_hp_is_empty(ne_hp)) {
+    neTimeEvent *timeNode = (neTimeEvent *)ne_hp_min(ne_hp);
     check(timeNode != NULL, "ne_hp_min error");
 
     if (timeNode->deleted) {
-      ne_hp_delmin(&ne_hp);
+      ne_hp_delmin(ne_hp);
       free(timeNode);
       continue;
     }
@@ -233,7 +233,7 @@ int neProcessTimeEvents(neEventLoop *eventLoop) {
       timeNode->timeProc(eventLoop, timeNode->clientData);
 
     /* Delete timeNode directly */
-    ne_hp_delmin(&ne_hp);
+    ne_hp_delmin(ne_hp);
     free(timeNode);
 
     processed++;

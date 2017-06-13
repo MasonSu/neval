@@ -5,3 +5,7 @@ cmake_install.cmake
 tmp.md
 .vscode/
 images/
+neval
+heap_test
+multiple_write_test
+offset_test

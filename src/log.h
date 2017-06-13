@@ -25,7 +25,7 @@
   fprintf(stderr,                                                              \
           ANSI_COLOR_BLUE "[DEBUG]" ANSI_COLOR_MAGENTA                         \
                           "%s:%d: " ANSI_COLOR_CYAN M ANSI_COLOR_RESET "\n",   \
-          __FILE__, __LINE__, ##__VA_ARGS__);
+          strrchr(__FILE__, '/') + 1, __LINE__, ##__VA_ARGS__);
 #endif
 
 #define clean_errno() (errno == 0 ? "None" : strerror(errno))
@@ -36,32 +36,33 @@
   fprintf(stderr, ANSI_COLOR_RED                                               \
           "[ERROR]" ANSI_COLOR_MAGENTA                                         \
           "%s:%d: errno: %s " ANSI_COLOR_CYAN M ANSI_COLOR_RESET "\n",         \
-          __FILE__, __LINE__, clean_errno(), ##__VA_ARGS__)
+          strrchr(__FILE__, '/') + 1, __LINE__, clean_errno(), ##__VA_ARGS__)
 
 #define log_warn(M, ...)                                                       \
   fprintf(stderr, ANSI_COLOR_YELLOW                                            \
           "[WARN]" ANSI_COLOR_MAGENTA                                          \
           "%s:%d: errno: %s " ANSI_COLOR_CYAN M ANSI_COLOR_RESET "\n",         \
-          __FILE__, __LINE__, clean_errno(), ##__VA_ARGS__)
+          strrchr(__FILE__, '/') + 1, __LINE__, clean_errno(), ##__VA_ARGS__)
 
 #define log_info(M, ...)                                                       \
   fprintf(stderr,                                                              \
           ANSI_COLOR_GREEN "[INFO]" ANSI_COLOR_MAGENTA                         \
                            "%s:%d: " ANSI_COLOR_CYAN M ANSI_COLOR_RESET "\n",  \
-          __FILE__, __LINE__, ##__VA_ARGS__)
+          strrchr(__FILE__, '/') + 1, __LINE__, ##__VA_ARGS__)
 
 #else
 
 #define log_err(M, ...)                                                        \
-  fprintf(stderr, "[ERROR] %s:%d: errno: %s " M "\n", __FILE__, __LINE__,      \
-          clean_errno(), ##__VA_ARGS__)
+  fprintf(stderr, "[ERROR] %s:%d: errno: %s " M "\n",                          \
+          strrchr(__FILE__, '/') + 1, __LINE__, clean_errno(), ##__VA_ARGS__)
 
 #define log_warn(M, ...)                                                       \
-  fprintf(stderr, "[WARN] %s:%d: errno: %s " M "\n", __FILE__, __LINE__,       \
-          clean_errno(), ##__VA_ARGS__)
+  fprintf(stderr, "[WARN] %s:%d: errno: %s " M "\n",                           \
+          strrchr(__FILE__, '/') + 1, __LINE__, clean_errno(), ##__VA_ARGS__)
 
 #define log_info(M, ...)                                                       \
-  fprintf(stderr, "[INFO] %s:%d " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+  fprintf(stderr, "[INFO] %s:%d " M "\n", strrchr(__FILE__, '/') + 1,          \
+          __LINE__, ##__VA_ARGS__)
 
 #endif
 
