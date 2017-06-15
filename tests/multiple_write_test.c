@@ -11,7 +11,7 @@
 #define NUM 500
 #define LENGTH 100
 
-int main(int argc, char const *argv[]) {
+int main(void) {
   int fd = open("/home/xiaxun/worksp/neval/test/output", O_CREAT | O_WRONLY);
   if (fd == -1)
     log_err("open file failure");

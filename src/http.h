@@ -44,7 +44,7 @@ typedef struct ne_http_request {
 
   int request_done; // whether request has been done
 
-  list *list;
+  neList *list;
   u_char *cur_header_key_start;
   u_char *cur_header_key_end;
   u_char *cur_header_value_start;

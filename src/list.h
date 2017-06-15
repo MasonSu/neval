@@ -7,12 +7,12 @@ typedef struct listNode {
   void *value;
 } listNode;
 
-typedef struct list {
+typedef struct neList {
   listNode *head;
   listNode *tail;
   void (*free)(void *ptr);
   unsigned long len;
-} list;
+} neList;
 
 /* Functions implemented as macros */
 #define listLength(l) ((l)->len)
@@ -24,12 +24,13 @@ typedef struct list {
 #define listSetFreeMethod(l, m) ((l)->free = (m))
 #define listGetFree(l) ((l)->free)
 
-list *listCreate(void);
-void listRelease(list *list);
-void listEmpty(list *list);
-list *listAddNodeHead(list *list, void *value);
-list *listAddNodeTail(list *list, void *value);
-list *listInsertNode(list *list, listNode *old_node, void *value, int after);
-void listDelNode(list *list, listNode *node);
+neList *listCreate(void);
+void listRelease(neList *list);
+void listEmpty(neList *list);
+neList *listAddNodeHead(neList *list, void *value);
+neList *listAddNodeTail(neList *list, void *value);
+neList *listInsertNode(neList *list, listNode *old_node, void *value,
+                       int after);
+void listDelNode(neList *list, listNode *node);
 
 #endif

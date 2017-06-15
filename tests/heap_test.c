@@ -62,7 +62,7 @@ size_t resultdata[] = {
     2737, 2755, 2777, 2790, 2796, 2798, 2803, 2804, 2841, 2846, 2864, 2870,
     2883, 2887, 2902, 2917, 2930, 2931, 2932, 2934, 2953, 2964, 2968, 2982};
 
-int main(int argc, char const *argv[]) {
+int main(void) {
   minHeap ne_hp;
   int rc = ne_hp_init(&ne_hp, comp, NE_HEAP_DEFAULT_SIZE);
   check_exit(rc == 0, "ne_hp_init");

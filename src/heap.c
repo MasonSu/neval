@@ -30,16 +30,22 @@ static int ne_hp_resize(minHeap *ne_hp, size_t new_size) {
     log_err("resise: new_size too small");
     return -1;
   }
-  /* Maybe it can be done by realloc */
-  void **new_ptr = (void **)malloc(sizeof(void *) * new_size);
-  if (!new_ptr) {
-    log_err("resize: malloc failed");
+
+  ne_hp->data = realloc(ne_hp->data, sizeof(void *) * new_size);
+  if (ne_hp->data == NULL) {
+    log_err("resize failed");
     return -1;
   }
+  // void **new_ptr = (void **)malloc(sizeof(void *) * new_size);
+  // if (!new_ptr) {
+  //   log_err("resize: malloc failed");
+  //   return -1;
+  // }
 
-  memcpy(new_ptr, ne_hp->data, sizeof(void *) * (ne_hp->size + 1));
-  free(ne_hp->data);
-  ne_hp->data = new_ptr;
+  // memcpy(new_ptr, ne_hp->data, sizeof(void *) * (ne_hp->size + 1));
+  // free(ne_hp->data);
+  // ne_hp->data = new_ptr;
+
   ne_hp->capacity = new_size;
 
   debug("the capacity of heap is %ld and the size of heap is %ld",
@@ -76,7 +82,7 @@ static void bubbleDown(minHeap *ne_hp, size_t k) {
 }
 
 int ne_hp_delmin(minHeap *ne_hp) {
-  debug("ne_hp_delmin, the size of minHeap is %d", ne_hp->size);
+  // debug("ne_hp_delmin, the size of minHeap is %d", ne_hp->size);
   swap(ne_hp, 1, ne_hp->size);
   ne_hp->size--;
   bubbleDown(ne_hp, 1);

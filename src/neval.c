@@ -20,6 +20,8 @@ int main(int argc, char const *argv[]) {
   rc = neCreateFileEvent(loop, sockfd, NE_READABLE, accept_handle, NULL);
   check_exit(rc == 0, "neCreateFileEvent");
 
+  server_init();
+
   log_info("Neval start...");
   neMain(loop);
 

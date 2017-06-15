@@ -1,9 +1,9 @@
 #include "list.h"
 #include <stdlib.h>
 
-list *listCreate(void) {
-  struct list *list;
-  if ((list = malloc(sizeof(struct list))) == NULL)
+neList *listCreate(void) {
+  struct neList *list;
+  if ((list = malloc(sizeof(struct neList))) == NULL)
     return NULL;
   list->head = list->tail = NULL;
   list->free = NULL;
@@ -15,7 +15,7 @@ list *listCreate(void) {
  * Remove all the elements from the list without destroying
  * the list itself;
  */
-void listEmpty(list *list) {
+void listEmpty(neList *list) {
   listNode *current = list->head, *next;
   unsigned long len = list->len;
   while (len--) {
@@ -32,7 +32,7 @@ void listEmpty(list *list) {
 /**
  * Free the whole list
  */
-void listRelease(list *list) {
+void listRelease(neList *list) {
   listEmpty(list);
   free(list);
 }
@@ -42,7 +42,7 @@ void listRelease(list *list) {
  * On error, NULL is returned and no operation is performed
  * On success the 'list' pointer you pass to the function is returned
  */
-list *listAddNodeHead(list *list, void *value) {
+neList *listAddNodeHead(neList *list, void *value) {
   listNode *node;
   if ((node = malloc(sizeof(listNode))) == NULL)
     return NULL;
@@ -65,7 +65,7 @@ list *listAddNodeHead(list *list, void *value) {
  * On error, NULL is returned and no operation is performed
  * On success the 'list' pointer you pass to the function is returned
  */
-list *listAddNodeTail(list *list, void *value) {
+neList *listAddNodeTail(neList *list, void *value) {
   listNode *node;
   if ((node = malloc(sizeof(listNode))) == NULL)
     return NULL;
@@ -83,7 +83,8 @@ list *listAddNodeTail(list *list, void *value) {
   return list;
 }
 
-list *listInsertNode(list *list, listNode *old_node, void *value, int after) {
+neList *listInsertNode(neList *list, listNode *old_node, void *value,
+                       int after) {
   listNode *node;
   if ((node = malloc(sizeof(listNode))) == NULL)
     return NULL;
@@ -107,7 +108,7 @@ list *listInsertNode(list *list, listNode *old_node, void *value, int after) {
   return list;
 }
 
-void listDelNode(list *list, listNode *node) {
+void listDelNode(neList *list, listNode *node) {
   if (node->prev)
     node->prev->next = node->next;
   else

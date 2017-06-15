@@ -236,7 +236,7 @@ int ne_http_parse_header_line(ne_http_request *request) {
 
   u_char *p;
   ne_http_header *header;
-  debug("request is %s", request->pos);
+  // debug("request is %s", request->pos);
   for (p = request->pos; p < request->last; p++) {
     u_char ch = *p;
 
@@ -297,10 +297,10 @@ int ne_http_parse_header_line(ne_http_request *request) {
       header->key_end = request->cur_header_key_end;
       header->value_start = request->cur_header_value_start;
       header->value_end = request->cur_header_value_end;
-      debug("header= %.*s, value= %.*s",
-            (int)(header->key_end - header->key_start), header->key_start,
-            (int)(header->value_end - header->value_start),
-            header->value_start);
+      // debug("header= %.*s, value= %.*s",
+      //       (int)(header->key_end - header->key_start), header->key_start,
+      //       (int)(header->value_end - header->value_start),
+      //       header->value_start);
       request->list = listAddNodeTail(request->list, header);
 
       if (ch == CR)

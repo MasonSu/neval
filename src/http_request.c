@@ -12,6 +12,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+static neDict *myDict;
+
+static void header_map_init(neDict **dict);
 static void request_reuse(ne_http_request *request);
 static int ne_http_handle_request_line(ne_http_request *request);
 static int ne_http_handle_uri(ne_http_request *request);
@@ -28,7 +31,21 @@ ne_http_header_handle ne_http_headers_in[] = {
     {"Host", ne_http_process_ignore},
     {"Connection", ne_http_process_connection},
     {"If-Modified-Since", ne_http_process_if_modified_since},
-    {"", ne_http_process_ignore}};
+    {"Cache-Control", ne_http_process_ignore}};
+
+/* https://stackoverflow.com/questions/18698317/c-pointers-as-function-arguments
+ * http://www.cprogramming.com/tips/tip/passing-a-pointer-to-a-function
+ */
+void header_map_init(neDict **dict) {
+  *dict = dictCreate();
+  int n = sizeof(ne_http_headers_in) / sizeof(ne_http_headers_in[0]);
+
+  for (int i = 0; i < n; i++)
+    dictInsert(*dict, ne_http_headers_in[i].name,
+               ne_http_headers_in[i].handler);
+}
+
+void server_init(void) { header_map_init(&myDict); }
 
 ne_http_request *request_init(neEventLoop *loop, int fd) {
   ne_http_request *request = (ne_http_request *)malloc(sizeof(ne_http_request));
@@ -223,20 +240,22 @@ int ne_http_handle_header_line(ne_http_request *request) {
     request->status_code = 400;
     goto err;
   }
-  /* Not efficient to do this, need to be improved */
+
   for (listNode *node = request->list->head; node != NULL; node = node->next) {
     ne_http_header *value = (ne_http_header *)node->value;
-    for (ne_http_header_handle *header_in = ne_http_headers_in;
-         strlen(header_in->name); header_in++) {
-      debug("header= %.*s", (int)(value->key_end - value->key_start),
-            value->key_start);
-      if (strncmp(header_in->name, (char *)value->key_start,
-                  value->key_end - value->key_start) == 0) {
-        header_in->handler(request, (char *)value->value_start,
-                           value->value_end - value->value_end);
-        break;
-      }
+    int length = (int)(value->key_end - value->key_start);
+    value->key_start[length] = '\0';
+
+    debug("header = %s", value->key_start);
+
+    ne_http_header_handle_pt handle =
+        dictSearch(myDict, (char *)value->key_start);
+
+    if (handle != NULL) {
+      handle(request, (char *)value->value_start,
+             value->value_end - value->value_start);
     }
+
     listDelNode(request->list, node);
   }
 
@@ -264,15 +283,16 @@ int ne_http_close_conn(neEventLoop *eventLoop, void *clientData) {
 }
 
 int ne_http_process_ignore(ne_http_request *request, char *data, int length) {
-  (void)request;
-  (void)data;
-  (void)length;
+  UNUSED(request);
+  UNUSED(data);
+  UNUSED(length);
 
   return NE_OK;
 }
 
 int ne_http_process_connection(ne_http_request *request, char *data,
                                int length) {
+  // debug("ne_http_process_connection");
   if (strncasecmp("Keep-Alive", data, length) == 0)
     request->keep_alive = 1;
 
@@ -281,6 +301,7 @@ int ne_http_process_connection(ne_http_request *request, char *data,
 
 int ne_http_process_if_modified_since(ne_http_request *request, char *data,
                                       int length) {
+  // debug("ne_http_process_if_modified_since");
   return ne_http_process_ignore(request, data, length);
 }
 

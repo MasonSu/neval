@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int main(int argc, char const *argv[]) {
+int main(void) {
   ne_http_request *request = request_init(NULL, 0);
   char str[] = "GET   /path/resource   H";
   strncpy(request->inbuf, str, sizeof(str));

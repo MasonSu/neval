@@ -9,7 +9,7 @@
 //#define OPENBEFOREFORK
 //#define OPENAFTERFORK
 
-int main(int argc, char *argv[]) {
+int main(void) {
   setbuf(stdout, NULL);
 
 #ifdef OPENBEFOREFORK
