@@ -11,6 +11,7 @@ typedef struct ne_http_header_handle {
   ne_http_header_handle_pt handler;
 } ne_http_header_handle;
 
+void request_reuse(ne_http_request *request);
 ne_http_request *request_init(neEventLoop *loop, int fd);
 void ne_http_request_handle(struct neEventLoop *eventLoop, int fd,
                             void *clientData);

@@ -1,4 +1,5 @@
 build/
 tmp.md
 .vscode/
-images/
+*.jpg
+*.jpeg
