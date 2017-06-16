@@ -79,7 +79,8 @@ int neApiAddEvent(neEventLoop *eventLoop, int fd, int mask) {
     ee.events |= EPOLLIN;
   if (mask & NE_WRITABLE)
     ee.events |= EPOLLOUT;
-
+  if (mask & NE_ET)
+    ee.events |= EPOLLET;
   ee.data.fd = fd;
 
   return epoll_ctl(state->epfd, op, fd, &ee);
@@ -95,7 +96,8 @@ void neApiDelEvent(neEventLoop *eventLoop, int fd, int delmask) {
     ee.events |= EPOLLIN;
   if (mask & NE_WRITABLE)
     ee.events |= EPOLLOUT;
-
+  if (mask & NE_ET)
+    ee.events |= EPOLLET;
   ee.data.fd = fd;
   if (mask == NE_NONE)
     epoll_ctl(state->epfd, EPOLL_CTL_DEL, fd, &ee);

@@ -7,11 +7,14 @@
 #define NE_NONE 0
 #define NE_READABLE 1
 #define NE_WRITABLE 2
+#define NE_ET 4
 
 #define NE_FILE_EVENTS 1
 #define NE_TIME_EVENTS 2
 #define NE_ALL_EVENTS (NE_FILE_EVENTS | NE_TIME_EVENTS)
 #define NE_DONT_WAIT 4
+
+#define NE_MAX_CLIENT 1000
 
 struct neEventLoop;
 

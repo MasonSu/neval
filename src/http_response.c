@@ -273,7 +273,7 @@ void ne_http_send_response(ne_http_request *request) {
 again:
   /* Do not support pipelining */
   request->write_event = 1;
-  neDeleteFileEvent(request->loop, request->socket, NE_READABLE);
+  neDeleteFileEvent(request->loop, request->socket, NE_READABLE | NE_ET);
   rc = neCreateFileEvent(request->loop, request->socket, NE_WRITABLE,
                          ne_http_response_handle, request);
   check(rc == NE_OK, "neCreateFileEvent");

@@ -14,10 +14,11 @@ int main(int argc, char const *argv[]) {
   int rc = make_socket_non_blocking(sockfd);
   check_exit(rc == 0, "make_socket_non_blocking");
 
-  struct neEventLoop *loop = neCreateEventLoop(64);
+  struct neEventLoop *loop = neCreateEventLoop(NE_MAX_CLIENT);
   check_exit(loop != NULL, "neCreateEventLoop");
 
-  rc = neCreateFileEvent(loop, sockfd, NE_READABLE, accept_handle, NULL);
+  rc =
+      neCreateFileEvent(loop, sockfd, NE_READABLE | NE_ET, accept_handle, NULL);
   check_exit(rc == 0, "neCreateFileEvent");
 
   server_init();

@@ -121,8 +121,8 @@ void accept_handle(struct neEventLoop *eventLoop, int fd, void *clientData) {
     ne_http_request *request = request_init(eventLoop, infd);
     check(request != NULL, "request_init");
     // Add EPOLLET
-    rc = neCreateFileEvent(eventLoop, infd, NE_READABLE, ne_http_request_handle,
-                           request);
+    rc = neCreateFileEvent(eventLoop, infd, NE_READABLE | NE_ET,
+                           ne_http_request_handle, request);
     check(rc == NE_OK, "neCreateFileEvent");
     rc = neCreateTimeEvent(eventLoop, TIMEOUT_DEFAULT, ne_http_close_conn,
                            request);
@@ -280,7 +280,8 @@ int ne_http_close_conn(neEventLoop *eventLoop, void *clientData) {
   debug("close connection");
   ne_http_request *request = (ne_http_request *)clientData;
   /* timeEvent has been deleted before */
-  neDeleteFileEvent(eventLoop, request->socket, NE_READABLE | NE_WRITABLE);
+  neDeleteFileEvent(eventLoop, request->socket,
+                    NE_READABLE | NE_WRITABLE | NE_ET);
   close(request->socket);
 
   free(request);
@@ -317,8 +318,9 @@ void ne_http_resquest_done(ne_http_request *request) {
     int rc;
     if (request->write_event) {
       neDeleteFileEvent(request->loop, request->socket, NE_WRITABLE);
-      rc = neCreateFileEvent(request->loop, request->socket, NE_READABLE,
-                             ne_http_request_handle, request);
+      rc =
+          neCreateFileEvent(request->loop, request->socket, NE_READABLE | NE_ET,
+                            ne_http_request_handle, request);
       check(rc == NE_OK, "neCreateFileEvent");
     }
 
