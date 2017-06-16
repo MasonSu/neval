@@ -69,6 +69,7 @@ ne_http_request *request_init(neEventLoop *loop, int fd) {
 
   request->write_event = 0;
 
+  request->offset = 0;
   request->request_done = 0;
   request->response_done = 0;
 
@@ -90,6 +91,7 @@ void request_reuse(ne_http_request *request) {
 
   request->write_event = 0;
 
+  request->offset = 0;
   request->request_done = 0;
   request->response_done = 0;
 
