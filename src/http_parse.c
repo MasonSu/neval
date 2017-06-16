@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define ROOT "/home/xiaxun/worksp/neval/data/www"
+//#define ROOT "/home/xiaxun/worksp/neval/data/www"
+#define ROOT "/home/mason/http/data/www"
 
 int ne_http_parse_request_line(ne_http_request *request) {
   enum {

@@ -160,7 +160,7 @@ int neCreateTimeEvent(neEventLoop *eventLoop, long long milliseconds,
   neTimeEvent *te = (neTimeEvent *)malloc(sizeof(neTimeEvent));
   if (te == NULL)
     return NE_ERR;
-
+  debug("neCreateTimeEvent");
   neAddMillisecondsToNow(milliseconds, &te->when_sec, &te->when_ms);
   te->timeProc = proc;
   te->clientData = clientData;
@@ -209,10 +209,12 @@ long long neSearchNearestTimer(neEventLoop *eventLoop) {
 }
 
 int neProcessTimeEvents(neEventLoop *eventLoop) {
+  debug("neProcessTimeEvents");
   int processed = 0;
   minHeap *ne_hp = &eventLoop->timer;
 
   while (!ne_hp_is_empty(ne_hp)) {
+    debug("handle timer");
     neTimeEvent *timeNode = (neTimeEvent *)ne_hp_min(ne_hp);
     check(timeNode != NULL, "ne_hp_min error");
 
@@ -250,17 +252,21 @@ int neProcessEvents(neEventLoop *eventLoop, int flags) {
 
   long long time = neSearchNearestTimer(eventLoop);
   int numevents = neApiPoll(eventLoop, time);
-
+  debug("numevents = %d", numevents);
   for (int i = 0; i < numevents; i++) {
     int fd = eventLoop->fired[i].fd;
     int mask = eventLoop->fired[i].mask;
     neFileEvent *fe = &eventLoop->events[fd];
 
-    if (fe->mask & mask & NE_READABLE)
+    if (fe->mask & mask & NE_READABLE) {
+      debug("read event");
       fe->rfileProc(eventLoop, fd, fe->clientData);
+    }
 
-    if (fe->mask & mask & NE_WRITABLE)
+    if (fe->mask & mask & NE_WRITABLE) {
+      debug("write event");
       fe->wfileProc(eventLoop, fd, fe->clientData);
+    }
 
     processed++;
   }

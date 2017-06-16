@@ -237,12 +237,14 @@ void ne_http_build_error_page(ne_http_request *request) {
 }
 
 void ne_http_send_error_page(ne_http_request *request) {
+  debug("ne_http_send_error_page");
   ne_http_send_response_buffer(request);
 
   return;
 }
 
 void ne_http_send_response(ne_http_request *request) {
+  debug("ne_http_send_response");
   ne_http_response_put_status_line(request);
   ne_http_response_put_date(request);
   ne_http_response_put_server(request);
@@ -263,6 +265,8 @@ void ne_http_send_response(ne_http_request *request) {
     goto again;
   else if (rc == NE_ERR)
     goto err;
+
+  ne_http_resquest_done(request);
 
   return;
 
@@ -285,7 +289,7 @@ int ne_http_send_response_buffer(ne_http_request *request) {
   size_t count = request->buf_end - request->buf_begin;
   ssize_t nwritten;
   char *buf = request->outbuf;
-
+  debug("ne_http_send_response_buffer");
   while (count > 0) {
     nwritten = write(request->socket, buf + request->buf_begin, count);
     if (nwritten == -1) {
@@ -309,11 +313,12 @@ int ne_http_send_response_buffer(ne_http_request *request) {
 int ne_http_send_response_file(ne_http_request *request) {
   int count = request->resource_len - request->offset;
   int file = request->resource_fd, n;
-
+  debug("ne_http_send_response_file");
   off_t offset;
   while (count > 0) {
     offset = request->offset;
     n = sendfile(request->socket, file, &offset, count);
+    debug("send %d bytes", n);
     if (n == -1) {
       if (errno == EAGAIN) {
         log_warn("ne_http_send_response_file return EAGAIN");
@@ -327,11 +332,10 @@ int ne_http_send_response_file(ne_http_request *request) {
     request->offset += n;
     count -= n;
   }
+  debug("send file finish");
   /* Remember to close file */
   close(file);
   request->response_done = 1;
-
-  ne_http_resquest_done(request);
 
   return NE_OK;
 }
@@ -346,10 +350,12 @@ void ne_http_response_handle(struct neEventLoop *eventLoop, int fd,
   while (!request->response_done) {
     rc = request->out_handler(request);
     if (rc == NE_AGAIN)
-      break;
+      return;
     else if (rc == NE_ERR)
       goto err;
   }
+
+  ne_http_resquest_done(request);
 
   return;
 

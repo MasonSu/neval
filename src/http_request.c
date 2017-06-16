@@ -76,6 +76,7 @@ ne_http_request *request_init(neEventLoop *loop, int fd) {
 }
 
 void request_reuse(ne_http_request *request) {
+  debug("request_reuse");
   request->pos = (u_char *)request->inbuf;
   request->last = (u_char *)request->inbuf;
   request->state = 0;
@@ -91,6 +92,8 @@ void request_reuse(ne_http_request *request) {
 
   request->request_done = 0;
   request->response_done = 0;
+
+  memset(request->filename, 0, strlen(request->filename));
 }
 
 void accept_handle(struct neEventLoop *eventLoop, int fd, void *clientData) {
@@ -110,6 +113,7 @@ void accept_handle(struct neEventLoop *eventLoop, int fd, void *clientData) {
 
     int rc = make_socket_non_blocking(infd);
     check(rc == NE_OK, "make_socket_non_blocking");
+    debug("accept_handle");
     log_info("new connection fd %d", infd);
 
     ne_http_request *request = request_init(eventLoop, infd);
@@ -246,7 +250,7 @@ int ne_http_handle_header_line(ne_http_request *request) {
     int length = (int)(value->key_end - value->key_start);
     value->key_start[length] = '\0';
 
-    debug("header = %s", value->key_start);
+    // debug("header = %s", value->key_start);
 
     ne_http_header_handle_pt handle =
         dictSearch(myDict, (char *)value->key_start);
@@ -306,6 +310,7 @@ int ne_http_process_if_modified_since(ne_http_request *request, char *data,
 }
 
 void ne_http_resquest_done(ne_http_request *request) {
+  debug("ne_http_request_done");
   if (request->keep_alive) {
     int rc;
     if (request->write_event) {

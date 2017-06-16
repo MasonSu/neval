@@ -82,20 +82,21 @@ static void bubbleDown(minHeap *ne_hp, size_t k) {
 }
 
 int ne_hp_delmin(minHeap *ne_hp) {
-  // debug("ne_hp_delmin, the size of minHeap is %d", ne_hp->size);
+  debug("ne_hp_delmin, the size of minHeap is %d", ne_hp->size);
   swap(ne_hp, 1, ne_hp->size);
   ne_hp->size--;
   bubbleDown(ne_hp, 1);
-
-  if (ne_hp->size > 0 && ne_hp->size <= (ne_hp->capacity - 1) / 4) {
-    if (ne_hp_resize(ne_hp, ne_hp->capacity / 2) == -1)
-      return -1;
-  }
+  /* Not useful at the first */
+  // if (ne_hp->size > 0 && ne_hp->size <= (ne_hp->capacity - 1) / 4) {
+  //   if (ne_hp_resize(ne_hp, ne_hp->capacity / 2) == -1)
+  //     return -1;
+  // }
 
   return NE_OK;
 }
 
 int ne_hp_insert(minHeap *ne_hp, void *item) {
+  debug("ne_hp_insert");
   if (ne_hp->size + 1 == ne_hp->capacity) {
     if (ne_hp_resize(ne_hp, ne_hp->size * 2) == -1)
       return -1;
