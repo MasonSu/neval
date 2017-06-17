@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE
+
 #include "http_request.h"
 #include "http.h"
 #include "http_parse.h"
@@ -6,6 +8,7 @@
 #include "networking.h"
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <strings.h>
 #include <sys/stat.h>
@@ -45,7 +48,17 @@ void header_map_init(neDict **dict) {
                ne_http_headers_in[i].handler);
 }
 
-void server_init(void) { header_map_init(&myDict); }
+void server_init(void) {
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_handler = SIG_IGN;
+  sa.sa_flags = 0;
+
+  if (sigaction(SIGPIPE, &sa, NULL) == -1)
+    log_err("install signal handler for SIGPIPE failed");
+
+  header_map_init(&myDict);
+}
 
 ne_http_request *request_init(neEventLoop *loop, int fd) {
   ne_http_request *request = (ne_http_request *)malloc(sizeof(ne_http_request));
