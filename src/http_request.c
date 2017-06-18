@@ -77,6 +77,7 @@ ne_http_request *request_init(neEventLoop *loop, int fd) {
   request->out_handler = ne_http_send_response_buffer;
   request->keep_alive = 1;
   request->status_code = 200;
+  /* This is very important, since sometimes the outbuf stay the same */
   request->buf_begin = 0;
   request->buf_end = 0;
 
@@ -99,6 +100,7 @@ void request_reuse(ne_http_request *request) {
   request->out_handler = ne_http_send_response_buffer;
   request->keep_alive = 1;
   request->status_code = 200;
+
   request->buf_begin = 0;
   request->buf_end = 0;
 
@@ -107,8 +109,6 @@ void request_reuse(ne_http_request *request) {
   request->offset = 0;
   request->request_done = 0;
   request->response_done = 0;
-
-  memset(request->filename, 0, strlen(request->filename));
 }
 
 void accept_handle(struct neEventLoop *eventLoop, int fd, void *clientData) {

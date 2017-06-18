@@ -9,3 +9,5 @@ add_executable(multiple_write_test multiple_write_test.c)
 add_executable(hash_test hash_test.c ../src/hash.c)
 
 add_executable(shared_resources_test shared_resources_test.c)
+
+add_executable(free_test free_test.c)
