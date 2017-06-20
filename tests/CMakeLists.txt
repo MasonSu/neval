@@ -11,3 +11,7 @@ add_executable(hash_test hash_test.c ../src/hash.c)
 add_executable(shared_resources_test shared_resources_test.c)
 
 add_executable(free_test free_test.c)
+
+add_executable(config_test config_test.c ../src/config.c)
+
+add_executable(getopt_test getopt_test.c)

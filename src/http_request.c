@@ -1,6 +1,7 @@
 #define _XOPEN_SOURCE
 
 #include "http_request.h"
+#include "config.h"
 #include "http.h"
 #include "http_parse.h"
 #include "http_response.h"
@@ -137,7 +138,7 @@ void accept_handle(struct neEventLoop *eventLoop, int fd, void *clientData) {
     rc = neCreateFileEvent(eventLoop, infd, NE_READABLE | NE_ET,
                            ne_http_request_handle, request);
     check(rc == NE_OK, "neCreateFileEvent");
-    rc = neCreateTimeEvent(eventLoop, TIMEOUT_DEFAULT, ne_http_close_conn,
+    rc = neCreateTimeEvent(eventLoop, server.timeout, ne_http_close_conn,
                            request);
     check(rc == NE_OK, "neCreateTimeEvent");
   }
@@ -339,7 +340,7 @@ void ne_http_resquest_done(ne_http_request *request) {
       check(rc == NE_OK, "neCreateFileEvent");
     }
 
-    rc = neCreateTimeEvent(request->loop, TIMEOUT_DEFAULT, ne_http_close_conn,
+    rc = neCreateTimeEvent(request->loop, server.timeout, ne_http_close_conn,
                            request);
     check(rc == NE_OK, "neCreateTimeEvent");
 

@@ -1,10 +1,8 @@
 #include "http_parse.h"
+#include "config.h"
 #include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
-
-//#define ROOT "/home/xiaxun/worksp/neval/data/www"
-#define ROOT "/home/mason/http/data/www"
 
 int ne_http_parse_request_line(ne_http_request *request) {
   enum {
@@ -343,7 +341,7 @@ void ne_http_parse_uri(ne_http_request *request) {
   memset(request->filename, 0, strlen(request->filename));
 
   char *fileName = request->filename;
-  strncpy(fileName, ROOT, strlen(ROOT));
+  strncpy(fileName, server.root, strlen(server.root));
 
   if (uri_length > MAX_LENGTH) {
     request->status_code = 414;
