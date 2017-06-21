@@ -263,7 +263,8 @@ int ne_http_handle_header_line(ne_http_request *request) {
     goto err;
   }
 
-  for (listNode *node = request->list->head; node != NULL; node = node->next) {
+  for (listNode *node = request->list->head; node != NULL;) {
+    listNode *next = node->next;
     ne_http_header *value = (ne_http_header *)node->value;
     int length = (int)(value->key_end - value->key_start);
     value->key_start[length] = '\0';
@@ -279,6 +280,7 @@ int ne_http_handle_header_line(ne_http_request *request) {
     }
 
     listDelNode(request->list, node);
+    node = next;
   }
 
   check_debug(request->list->len == 0, "the list length error");

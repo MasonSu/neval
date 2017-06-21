@@ -338,7 +338,7 @@ void ne_http_parse_uri(ne_http_request *request) {
   int uri_length = request->uri_end - request->uri_start;
   uri[uri_length] = '\0';
   /* free doesn't clear the buffer */
-  memset(request->filename, 0, strlen(request->filename));
+  memset(request->filename, 0, sizeof(request->filename));
 
   char *fileName = request->filename;
   strncpy(fileName, server.root, strlen(server.root));
