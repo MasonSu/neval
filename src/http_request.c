@@ -300,6 +300,7 @@ int ne_http_close_conn(neEventLoop *eventLoop, void *clientData) {
                     NE_READABLE | NE_WRITABLE | NE_ET);
   close(request->socket);
 
+  listRelease(request->list);
   free(request);
 
   return NE_OK;

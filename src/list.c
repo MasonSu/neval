@@ -6,7 +6,7 @@ neList *listCreate(void) {
   if ((list = malloc(sizeof(struct neList))) == NULL)
     return NULL;
   list->head = list->tail = NULL;
-  list->free = NULL;
+  list->free = free;
   list->len = 0;
   return list;
 }
