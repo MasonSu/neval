@@ -35,6 +35,9 @@ static void ne_http_response_put_status_line(ne_http_request *request);
 static void ne_http_response_put_date(ne_http_request *request);
 static void ne_http_response_put_server(ne_http_request *request);
 static void ne_http_response_put_connection(ne_http_request *request);
+static void ne_http_response_put_cache_control(ne_http_request *request);
+static void ne_http_response_put_last_modified(ne_http_request *request);
+static void ne_http_response_put_etag(ne_http_request *request);
 static void ne_http_response_put_content_type(ne_http_request *request);
 static void ne_http_response_put_content_length(ne_http_request *request);
 
@@ -191,6 +194,36 @@ void ne_http_response_put_connection(ne_http_request *request) {
   apend_string(request, buf);
 }
 
+void ne_http_response_put_cache_control(ne_http_request *request) {
+  char buf[MAX_HEADER_LINE];
+
+  snprintf(buf, MAX_HEADER_LINE, "%s: %s\r\n", "Cache-Control", "max-age=60");
+  apend_string(request, buf);
+}
+
+void ne_http_response_put_last_modified(ne_http_request *request) {
+  char buf[MAX_HEADER_LINE];
+
+  struct tm *date = localtime(&request->modification_time);
+  check(date != NULL, "localtime");
+
+  if (strftime(buf, MAX_HEADER_LINE,
+               "Last-Modified: %a, %d %b %Y %H:%M:%S GMT\r\n", date) == 0)
+    log_err("strftime");
+
+  apend_string(request, buf);
+}
+
+void ne_http_response_put_etag(ne_http_request *request) {
+  char buf[MAX_HEADER_LINE];
+
+  snprintf(buf, MAX_HEADER_LINE, "ETag: \"%xT-%xO\"\r\n",
+           (unsigned int)request->modification_time,
+           (unsigned int)request->resource_len);
+
+  apend_string(request, buf);
+}
+
 void ne_http_response_put_content_type(ne_http_request *request) {
   char buf[MAX_HEADER_LINE];
   const char *dot = strrchr(request->filename, '.');
@@ -249,6 +282,9 @@ void ne_http_send_response(ne_http_request *request) {
   ne_http_response_put_date(request);
   ne_http_response_put_server(request);
   ne_http_response_put_connection(request);
+  ne_http_response_put_cache_control(request);
+  ne_http_response_put_last_modified(request);
+  ne_http_response_put_etag(request);
   ne_http_response_put_content_type(request);
   ne_http_response_put_content_length(request);
   apend_string(request, CRLF);
@@ -260,14 +296,17 @@ void ne_http_send_response(ne_http_request *request) {
   else if (rc == NE_ERR)
     goto err;
 
+  if (request->status_code == NE_HTTP_NOT_MODIFIED)
+    goto done;
+
   rc = ne_http_send_response_file(request);
   if (rc == NE_AGAIN)
     goto again;
   else if (rc == NE_ERR)
     goto err;
 
+done:
   ne_http_resquest_done(request);
-
   return;
 
 again:

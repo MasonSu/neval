@@ -4,6 +4,13 @@
 #include "hash.h"
 #include "http.h"
 
+#define NE_HTTP_OK 200
+#define NE_HTTP_NOT_MODIFIED 304
+#define NE_HTTP_BAD_REQUEST 400
+#define NE_HTTP_FORBIDDEN 403
+#define NE_HTTP_NOT_FOUND 404
+#define NE_HTTP_VERSION_NOT_SUPPORTED 505
+
 typedef int (*ne_http_header_handle_pt)(ne_http_request *, char *, int);
 
 typedef struct ne_http_header_handle {

@@ -8,6 +8,7 @@
 #include "log.h"
 #include "networking.h"
 #include <fcntl.h>
+#include <math.h>
 #include <netinet/in.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -30,11 +31,14 @@ static int ne_http_process_connection(ne_http_request *request, char *data,
                                       int length);
 static int ne_http_process_if_modified_since(ne_http_request *request,
                                              char *data, int length);
+static int ne_http_process_if_none_match(ne_http_request *request, char *data,
+                                         int length);
 
 ne_http_header_handle ne_http_headers_in[] = {
     {"Host", ne_http_process_ignore},
     {"Connection", ne_http_process_connection},
     {"If-Modified-Since", ne_http_process_if_modified_since},
+    {"If-None-Match", ne_http_process_if_none_match},
     {"Cache-Control", ne_http_process_ignore}};
 
 /* https://stackoverflow.com/questions/18698317/c-pointers-as-function-arguments
@@ -77,7 +81,7 @@ ne_http_request *request_init(neEventLoop *loop, int fd) {
   request->in_handler = ne_http_handle_request_line;
   request->out_handler = ne_http_send_response_buffer;
   request->keep_alive = 1;
-  request->status_code = 200;
+  request->status_code = NE_HTTP_OK;
   /* This is very important, since sometimes the outbuf stay the same */
   request->buf_begin = 0;
   request->buf_end = 0;
@@ -100,7 +104,7 @@ void request_reuse(ne_http_request *request) {
   request->in_handler = ne_http_handle_request_line;
   request->out_handler = ne_http_send_response_buffer;
   request->keep_alive = 1;
-  request->status_code = 200;
+  request->status_code = NE_HTTP_OK;
 
   request->buf_begin = 0;
   request->buf_end = 0;
@@ -204,13 +208,13 @@ int ne_http_handle_request_line(ne_http_request *request) {
   if (rc == NE_AGAIN)
     return rc;
   else if (rc == NE_HTTP_PARSE_INVALID_REQUEST) {
-    request->status_code = 400;
+    request->status_code = NE_HTTP_BAD_REQUEST;
     goto err;
   }
 
   /* Supports only HTTP/1.1 */
   if (request->http_major != 1 || request->http_minor > 1) {
-    request->status_code = 505;
+    request->status_code = NE_HTTP_VERSION_NOT_SUPPORTED;
     goto err;
   }
 
@@ -232,18 +236,19 @@ int ne_http_handle_uri(ne_http_request *request) {
   debug("fileName is %s", request->filename);
   struct stat sbuf;
   if (stat(request->filename, &sbuf) == -1) {
-    request->status_code = 404;
+    request->status_code = NE_HTTP_NOT_FOUND;
     goto err;
   }
 
   if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode)) {
-    request->status_code = 403;
+    request->status_code = NE_HTTP_FORBIDDEN;
     goto err;
   }
 
   request->resource_fd = open(request->filename, O_RDONLY);
   check(request->resource_fd != -1, "open error");
   request->resource_len = sbuf.st_size;
+  request->modification_time = sbuf.st_mtime;
 
   return NE_OK;
 
@@ -259,7 +264,7 @@ int ne_http_handle_header_line(ne_http_request *request) {
   if (rc == NE_AGAIN)
     return rc;
   else if (rc == NE_HTTP_PARSE_INVALID_HEADER) {
-    request->status_code = 400;
+    request->status_code = NE_HTTP_BAD_REQUEST;
     goto err;
   }
 
@@ -318,7 +323,6 @@ int ne_http_process_ignore(ne_http_request *request, char *data, int length) {
 
 int ne_http_process_connection(ne_http_request *request, char *data,
                                int length) {
-  // debug("ne_http_process_connection");
   if (strncasecmp("Keep-Alive", data, length) == 0)
     request->keep_alive = 1;
 
@@ -327,8 +331,34 @@ int ne_http_process_connection(ne_http_request *request, char *data,
 
 int ne_http_process_if_modified_since(ne_http_request *request, char *data,
                                       int length) {
-  // debug("ne_http_process_if_modified_since");
-  return ne_http_process_ignore(request, data, length);
+  UNUSED(length);
+  /* make Valgrind happy */
+  struct tm tm = {0};
+  if (strptime(data, "%a, %d %b %Y %H:%M:%S GMT", &tm) == NULL)
+    log_err("strptime");
+
+  time_t client_time = mktime(&tm);
+  check(client_time != -1, "mktime");
+
+  double time_diff = difftime(request->modification_time, client_time);
+  if (fabs(time_diff) < 1e-6)
+    request->status_code = NE_HTTP_NOT_MODIFIED;
+
+  return NE_OK;
+}
+
+int ne_http_process_if_none_match(ne_http_request *request, char *data,
+                                  int length) {
+  char buf[MAX_HEADER_LINE];
+
+  snprintf(buf, MAX_HEADER_LINE, "ETag: \"%xT-%xO\"",
+           (unsigned int)request->modification_time,
+           (unsigned int)request->resource_len);
+
+  if (strncmp(buf, data, length) == 0)
+    request->status_code = NE_HTTP_NOT_MODIFIED;
+
+  return NE_OK;
 }
 
 void ne_http_resquest_done(ne_http_request *request) {

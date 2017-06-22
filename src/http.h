@@ -41,6 +41,7 @@ typedef struct ne_http_request {
 
   char filename[MAX_LENGTH];
   int resource_fd;
+  time_t modification_time;
   size_t resource_len;
   off_t offset; // file offset
 
