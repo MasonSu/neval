@@ -10,7 +10,11 @@
 #include "log.h"
 #include "ne.h"
 
+#ifdef __linux__
 #include "ne_epoll.c"
+#else
+#include "ne_select.c"
+#endif
 
 #define NE_TIMER_INFINITE -1
 
