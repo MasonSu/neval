@@ -20,7 +20,7 @@ int ne_http_parse_request_line(ne_http_request *request) {
     sw_first_minor_digit,
     sw_minor_digit,
     sw_spaces_after_digit,
-    sw_almost_down
+    sw_almost_done
   } state;
 
   state = request->state;
@@ -166,7 +166,7 @@ int ne_http_parse_request_line(ne_http_request *request) {
 
     case sw_minor_digit:
       if (ch == CR) {
-        state = sw_almost_down;
+        state = sw_almost_done;
         break;
       }
 
@@ -189,7 +189,7 @@ int ne_http_parse_request_line(ne_http_request *request) {
       case ' ':
         break;
       case CR:
-        state = sw_almost_down;
+        state = sw_almost_done;
         break;
       case LF:
         goto done;
@@ -198,7 +198,7 @@ int ne_http_parse_request_line(ne_http_request *request) {
       }
       break;
 
-    case sw_almost_down:
+    case sw_almost_done:
       request->request_end = p - 1;
       if (ch == LF)
         goto done;

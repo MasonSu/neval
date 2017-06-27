@@ -2,7 +2,7 @@
 
 #include "http_request.h"
 #include "config.h"
-#include "http.h"
+#include "hash.h"
 #include "http_parse.h"
 #include "http_response.h"
 #include "log.h"
@@ -133,12 +133,12 @@ void accept_handle(struct neEventLoop *eventLoop, int fd, void *clientData) {
 
     int rc = make_socket_non_blocking(infd);
     check(rc == NE_OK, "make_socket_non_blocking");
-    debug("accept_handle");
+
     log_info("new connection fd %d", infd);
 
     ne_http_request *request = request_init(eventLoop, infd);
     check(request != NULL, "request_init");
-    // Add EPOLLET
+
     rc = neCreateFileEvent(eventLoop, infd, NE_READABLE | NE_ET,
                            ne_http_request_handle, request);
     check(rc == NE_OK, "neCreateFileEvent");
@@ -159,12 +159,12 @@ void ne_http_request_handle(struct neEventLoop *eventLoop, int fd,
   /* Delete old timer */
   neDeleteTimeEvent(request);
   for (;;) {
-    int remainSize = MAX_BUF - (request->last - request->pos);
-    debug("before read errno is %d", errno);
+    int remainSize = MAX_BUF - (request->last - (u_char *)request->inbuf);
+    // debug("before read errno is %d", errno);
     int n = read(request->socket, request->last, remainSize);
-    debug("read return %d", n);
+    // debug("read return %d", n);
     if (n == 0) {
-      debug("after read errno is %d", errno);
+      // debug("after read errno is %d", errno);
       log_info("read return 0, ready to close fd %d", request->socket);
       goto err;
     }
@@ -178,7 +178,8 @@ void ne_http_request_handle(struct neEventLoop *eventLoop, int fd,
     }
 
     request->last += n;
-    check(request->last - request->pos < MAX_BUF, "request buffer overflow");
+    check(request->last - (u_char *)request->inbuf < MAX_BUF,
+          "request buffer overflow");
 
     while (!request->request_done) {
       rc = request->in_handler(request);
@@ -212,7 +213,6 @@ int ne_http_handle_request_line(ne_http_request *request) {
     goto err;
   }
 
-  /* Supports only HTTP/1.1 */
   if (request->http_major != 1 || request->http_minor > 1) {
     request->status_code = NE_HTTP_VERSION_NOT_SUPPORTED;
     goto err;
@@ -233,7 +233,7 @@ err:
 int ne_http_handle_uri(ne_http_request *request) {
   debug("ne_http_handle_uri");
   ne_http_parse_uri(request);
-  debug("fileName is %s", request->filename);
+  // debug("fileName is %s", request->filename);
   struct stat sbuf;
   if (stat(request->filename, &sbuf) == -1) {
     request->status_code = NE_HTTP_NOT_FOUND;

@@ -1,7 +1,6 @@
 #ifndef HTTP_REQUEST_H
 #define HTTP_REQUEST_H
 
-#include "hash.h"
 #include "http.h"
 
 #define NE_HTTP_OK 200

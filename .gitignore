@@ -1,7 +1,6 @@
 build/
-tmp.md
+http_server.md
 .vscode/
 *.jpg
 *.jpeg
-webbench-1.5/
 neval

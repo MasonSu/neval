@@ -325,10 +325,11 @@ err:
 }
 
 int ne_http_send_response_buffer(ne_http_request *request) {
+  debug("ne_http_send_response_buffer");
   size_t count = request->buf_end - request->buf_begin;
   ssize_t nwritten;
   char *buf = request->outbuf;
-  debug("ne_http_send_response_buffer");
+
   while (count > 0) {
     nwritten = write(request->socket, buf + request->buf_begin, count);
     if (nwritten == -1) {
@@ -344,15 +345,19 @@ int ne_http_send_response_buffer(ne_http_request *request) {
     count -= nwritten;
   }
 
-  request->out_handler = ne_http_send_response_file;
+  if (request->status_code == NE_HTTP_NOT_MODIFIED)
+    request->response_done = 1;
+  else
+    request->out_handler = ne_http_send_response_file;
 
   return NE_OK;
 }
 
 int ne_http_send_response_file(ne_http_request *request) {
+  debug("ne_http_send_response_file");
   int count = request->resource_len - request->offset;
   int file = request->resource_fd, n;
-  debug("ne_http_send_response_file");
+
   off_t offset;
   while (count > 0) {
     offset = request->offset;
@@ -360,7 +365,7 @@ int ne_http_send_response_file(ne_http_request *request) {
     debug("send %d bytes", n);
     if (n == -1) {
       if (errno == EAGAIN) {
-        log_warn("ne_http_send_response_file return EAGAIN");
+        // log_warn("ne_http_send_response_file return EAGAIN");
         return NE_AGAIN;
       }
 

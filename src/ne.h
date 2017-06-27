@@ -14,7 +14,7 @@
 #define NE_ALL_EVENTS (NE_FILE_EVENTS | NE_TIME_EVENTS)
 #define NE_DONT_WAIT 4
 
-#define NE_MAX_CLIENT 1000
+#define NE_MAX_CLIENT 1024
 
 struct neEventLoop;
 

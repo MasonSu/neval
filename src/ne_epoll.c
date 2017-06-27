@@ -3,29 +3,12 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
-/* turn off warning: defined but not used [-Wunused-function] */
-#ifdef __GNUC__
-#define FUNCTION_IS_NOT_USED __attribute__((unused))
-#else
-#define FUNCTION_IS_NOT_USED
-#endif
-
-static int neApiCreate(neEventLoop *eventLoop) FUNCTION_IS_NOT_USED;
-static int neApiResize(neEventLoop *eventLoop,
-                       int setsize) FUNCTION_IS_NOT_USED;
-static void neApiFree(neEventLoop *eventLoop) FUNCTION_IS_NOT_USED;
-static int neApiAddEvent(neEventLoop *eventLoop, int fd,
-                         int mask) FUNCTION_IS_NOT_USED;
-static void neApiDelEvent(neEventLoop *eventLoop, int fd,
-                          int delmask) FUNCTION_IS_NOT_USED;
-static int neApiPoll(neEventLoop *eventLoop, long long ms) FUNCTION_IS_NOT_USED;
-
 typedef struct neApiState {
   int epfd;
   struct epoll_event *events;
 } neApiState;
 
-int neApiCreate(neEventLoop *eventLoop) {
+static int neApiCreate(neEventLoop *eventLoop) {
   neApiState *state = malloc(sizeof(neApiState));
   if (!state)
     return -1;
@@ -47,7 +30,7 @@ int neApiCreate(neEventLoop *eventLoop) {
   return 0;
 }
 
-int neApiResize(neEventLoop *eventLoop, int setsize) {
+static int neApiResize(neEventLoop *eventLoop, int setsize) {
   neApiState *state = eventLoop->apidata;
 
   state->events = realloc(state->events, sizeof(struct epoll_event) * setsize);
@@ -56,7 +39,7 @@ int neApiResize(neEventLoop *eventLoop, int setsize) {
   return 0;
 }
 
-void neApiFree(neEventLoop *eventLoop) {
+static void neApiFree(neEventLoop *eventLoop) {
   neApiState *state = eventLoop->apidata;
 
   close(state->epfd);
@@ -64,7 +47,7 @@ void neApiFree(neEventLoop *eventLoop) {
   free(state);
 }
 
-int neApiAddEvent(neEventLoop *eventLoop, int fd, int mask) {
+static int neApiAddEvent(neEventLoop *eventLoop, int fd, int mask) {
   neApiState *state = eventLoop->apidata;
   struct epoll_event ee = {0};
 
@@ -86,7 +69,7 @@ int neApiAddEvent(neEventLoop *eventLoop, int fd, int mask) {
   return epoll_ctl(state->epfd, op, fd, &ee);
 }
 
-void neApiDelEvent(neEventLoop *eventLoop, int fd, int delmask) {
+static void neApiDelEvent(neEventLoop *eventLoop, int fd, int delmask) {
   neApiState *state = eventLoop->apidata;
   struct epoll_event ee = {0};
 
@@ -105,7 +88,7 @@ void neApiDelEvent(neEventLoop *eventLoop, int fd, int delmask) {
     epoll_ctl(state->epfd, EPOLL_CTL_MOD, fd, &ee);
 }
 
-int neApiPoll(neEventLoop *eventLoop, long long ms) {
+static int neApiPoll(neEventLoop *eventLoop, long long ms) {
   neApiState *state = eventLoop->apidata;
   int retval, numevents = 0;
 
@@ -127,3 +110,5 @@ int neApiPoll(neEventLoop *eventLoop, long long ms) {
   }
   return numevents;
 }
+
+static char *neApiName(void) { return "epoll"; }

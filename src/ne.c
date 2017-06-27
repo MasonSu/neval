@@ -157,10 +157,11 @@ static void neAddMillisecondsToNow(long long milliseconds, long *sec,
 
 int neCreateTimeEvent(neEventLoop *eventLoop, long long milliseconds,
                       neTimeProc *proc, void *clientData) {
+  debug("neCreateTimeEvent");
   neTimeEvent *te = (neTimeEvent *)malloc(sizeof(neTimeEvent));
   if (te == NULL)
     return NE_ERR;
-  debug("neCreateTimeEvent");
+
   neAddMillisecondsToNow(milliseconds, &te->when_sec, &te->when_ms);
   te->timeProc = proc;
   te->clientData = clientData;
@@ -252,7 +253,7 @@ int neProcessEvents(neEventLoop *eventLoop, int flags) {
 
   long long time = neSearchNearestTimer(eventLoop);
   int numevents = neApiPoll(eventLoop, time);
-  debug("numevents = %d", numevents);
+  // debug("numevents = %d", numevents);
   for (int i = 0; i < numevents; i++) {
     int fd = eventLoop->fired[i].fd;
     int mask = eventLoop->fired[i].mask;
