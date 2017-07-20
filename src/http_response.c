@@ -179,7 +179,7 @@ void ne_http_response_put_date(ne_http_request *request) {
 void ne_http_response_put_server(ne_http_request *request) {
   char buf[MAX_HEADER_LINE];
 
-  snprintf(buf, MAX_HEADER_LINE, "%s: %s\r\n", "Server: ", SERVER_NAME);
+  snprintf(buf, MAX_HEADER_LINE, "%s: %s\r\n", "Server", SERVER_NAME);
   apend_string(request, buf);
 }
 

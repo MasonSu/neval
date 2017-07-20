@@ -8,7 +8,7 @@
 #define CONF_FILE "./neval.conf"
 #define PROGRAM_VERSION "0.1"
 #define UNUSED(x) ((void)(x))
-#define SERVER_NAME "Neval"
+#define SERVER_NAME "Neval/0.1"
 #define MAX_BUF 8124
 #define MAX_LENGTH 512
 typedef unsigned char u_char;
