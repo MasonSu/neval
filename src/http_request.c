@@ -160,11 +160,8 @@ void ne_http_request_handle(struct neEventLoop *eventLoop, int fd,
   neDeleteTimeEvent(request);
   for (;;) {
     int remainSize = MAX_BUF - (request->last - (u_char *)request->inbuf);
-    // debug("before read errno is %d", errno);
     int n = read(request->socket, request->last, remainSize);
-    // debug("read return %d", n);
     if (n == 0) {
-      // debug("after read errno is %d", errno);
       log_info("read return 0, ready to close fd %d", request->socket);
       goto err;
     }
